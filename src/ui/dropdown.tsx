@@ -1,19 +1,20 @@
 import React, { useState } from "react"
 import { BiAnchor, BiArrowBack, BiArrowToTop, BiDroplet, BiExpand } from "react-icons/bi"
 
-interface Props {
-    items: Map<string, React.ReactNode>
+interface Props<ChannelType> {
+    items: Map<ChannelType, React.ReactNode>
     placeholder: React.ReactNode
+    selected: ChannelType | undefined
+    onSelect: (selected: ChannelType) => void
 }
 
-export default function DropDown({items, placeholder}: Props){
-    const [selected, setSelected] = useState<string | undefined>()
+export default function DropDown<CT extends unknown>({items, placeholder, selected, onSelect}: Props<CT>){
     const [isOpen, setIsOpen] = useState(false)
     let elements: React.ReactNode[] = []
     items.forEach((value, key) => elements.push(
         <div className="transition-all cursor-pointer rounded-sub p-sub h-[2.4rem] bg-white text-black hover:bg-[#ff4800] hover:text-white"
         onClick={() => {
-            setSelected(key)
+            onSelect(key)
         }}>
             {value}
         </div>

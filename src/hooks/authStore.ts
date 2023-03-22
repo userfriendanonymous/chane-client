@@ -1,6 +1,8 @@
 import api from '@/core/api'
+import { WritableDraft } from 'immer/dist/internal'
 import {create} from 'zustand'
 import {immer} from 'zustand/middleware/immer'
+import Cookie from 'js-cookie'
 
 export type AuthState = {
     is: 'valid',
@@ -15,7 +17,7 @@ interface AuthStore {
     validate: (name: string) => void
     isChecked: boolean
     check: () => void
-    setState: (state: AuthState, noReset?: boolean) => void
+    setState: (state: WritableDraft<AuthStore>, newState: AuthState, noReset?: boolean) => void
 }
 
 const useAuthStore = create<AuthStore>()(immer((set, get) => ({
@@ -24,24 +26,26 @@ const useAuthStore = create<AuthStore>()(immer((set, get) => ({
 
     invalidate: () => {
         set(state => {
-            state.setState({is: 'invalid'})
+            state.setState(state, {is: 'invalid'})
         })
     },
 
-    setState: (newState, noReset) => {
-        set(state => {
-            state.state = newState
-        })
-    
+    setState: (state: AuthStore, newState, noReset) => {
+        state.state = newState
+
         if (!noReset){
             try {
                 localStorage.setItem('auth-info', JSON.stringify(newState))
             } catch(error){}
         }
+
+        if (newState.is == 'invalid'){
+            Cookie.remove('key-token', { path: '/api/auth', expires: 0 })
+        }
     },
 
     validate: (name) => set(state => {
-        state.setState({
+        state.setState(state, {
             is: 'valid',
             name
         })
@@ -60,7 +64,6 @@ const useAuthStore = create<AuthStore>()(immer((set, get) => ({
                 let result = JSON.parse(localStorage.getItem('auth-info') ?? '')
                 if (result.is == 'valid'){
                     auth = {is: 'valid', name: result.name ?? '???'}
-                    console.log(auth)
                     isFound = true
                 } else if (result.is == 'invalid'){
                     isFound = true
@@ -71,7 +74,7 @@ const useAuthStore = create<AuthStore>()(immer((set, get) => ({
 
             if (isFound){
                 set(state => {
-                    state.setState(auth)
+                    state.setState(state, auth)
                 })
                 return
             }
@@ -79,10 +82,10 @@ const useAuthStore = create<AuthStore>()(immer((set, get) => ({
             api.getMyAuth().then(result => {
                 if (result.type == 'success'){
                     set(state => {
-                        state.setState(result.data)
+                        state.setState(state, result.data)
                     })
                 } else {
-                }
+                } 
             })
         }
     }

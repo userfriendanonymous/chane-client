@@ -1,4 +1,5 @@
 import api from "@/core/api"
+import useNotificationsStore from "@/hooks/notificationsStore"
 import Button from "@/ui/button"
 import Input from "@/ui/input"
 import { useCallback, useRef, useState } from "react"
@@ -8,12 +9,15 @@ import ButtonWithWindow from "../buttonWithWindow"
 export default function CreateBlockItem(){
     const buttonRef = useRef<HTMLInputElement>(null!)
     const [isLoading, setIsLoading] = useState(false)
+    const pushNotification = useNotificationsStore(store => store.push)
 
     const onSubmit = useCallback(async () => {
         setIsLoading(true)
         const result = await api.createBlock(buttonRef.current.value)
         if (result.type == 'success'){
-            
+            pushNotification(result.data, 'success')
+        } else {
+            pushNotification(result.data, 'error')
         }
         setIsLoading(false)
     }, [])

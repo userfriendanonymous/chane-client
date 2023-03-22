@@ -6,9 +6,10 @@ import Input from "@/ui/input";
 import ToggleLabeled from "@/ui/toggleLabeled";
 import ToggleSwitch from "@/ui/toggleSwitch";
 import VisualArray from "@/ui/visualArray";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { BiPlus, BiUser } from "react-icons/bi";
 import ButtonWithWindow from "../buttonWithWindow"
+import useNotificationsStore from "@/hooks/notificationsStore";
 
 interface Collectables {
     viewBlocks: string[]
@@ -20,10 +21,13 @@ interface Collectables {
     pinRoles: string[]
     editors: string[]
     extends: string[]
+    changeRoles: string[]
 }
 
 export default function CreateRoleItem(){
     const [isLoading, setIsLoading] = useState(false)
+    const nameRef = useRef<HTMLInputElement>(null!)
+    const pushNotification = useNotificationsStore(store => store.push)
     const [canSetLabels, setCanSetLabels] = useState(false)
     const [collectables, setCollectables] = useState<Collectables>({
         viewBlocks: [],
@@ -34,7 +38,8 @@ export default function CreateRoleItem(){
         changeDescription: [],
         pinRoles: [],
         editors: [],
-        extends: []
+        extends: [],
+        changeRoles: [],
     })
 
     const collectableControls = useCallback((type: keyof Collectables) => {
@@ -64,20 +69,40 @@ export default function CreateRoleItem(){
         
     }, [setCollectables, collectables])
 
-    const onSubmit = useCallback(() => {
-        api
+    const onSubmit = useCallback(async () => {
         setIsLoading(true)
-    }, [])
+        const result = await api.createRole(nameRef.current.value, collectables.extends, collectables.editors, {
+            changeDefaultRole: collectables.changeDefaultRole,
+            changeDescription: collectables.changeDescription,
+            changeRoles: collectables.changeRoles,
+            connectBlocks: collectables.connectBlocks,
+            disconnectBlocks: collectables.disconnectBlocks,
+            pinBlock: collectables.pinBlock,
+            pinRoles: collectables.pinRoles,
+            setLabels: canSetLabels,
+            viewBlocks: collectables.viewBlocks
+        })
+
+        if (result.type == 'success'){
+            pushNotification(result.data, 'success')
+        } else {
+            pushNotification(result.data, 'error')
+        }
+        setIsLoading(false)
+    }, [nameRef, collectables, canSetLabels, pushNotification])
 
     return (
         <ButtonWithWindow icon={<BiUser className="scale-[1.35]"/>} text='Create role'>
-            <Input className="bg-[#eeeeee]" placeholder="Name?"/>
+            <Input ref={nameRef} className="bg-[#eeeeee]" placeholder="Name?"/>
             <ColumnScroller className="h-[30rem]">
             <div className="gap-block flex flex-col w-[30rem]">
                 <div className="text-[1.4rem] font-medium text-center">Permissions</div>
                 <VisualArray placeholder='Add label...' text="View blocks?" items={collectables.viewBlocks} {...collectableControls('viewBlocks')}/>
                 <VisualArray placeholder='Add label...' text="Connect blocks?" items={collectables.connectBlocks} {...collectableControls('connectBlocks')}/>
                 <VisualArray placeholder='Add label...' text="Disconnect blocks?" items={collectables.disconnectBlocks} {...collectableControls('disconnectBlocks')}/>
+                <VisualArray placeholder='Add label...' text="Pin block?" items={collectables.viewBlocks} {...collectableControls('pinBlock')}/>
+                <VisualArray placeholder='Add label...' text="Change default role?" items={collectables.connectBlocks} {...collectableControls('changeDefaultRole')}/>
+                <VisualArray placeholder='Add label...' text="Pin roles?" items={collectables.disconnectBlocks} {...collectableControls('pinRoles')}/>
                 <ToggleLabeled isOn={canSetLabels} onSwitch={() => setCanSetLabels(!canSetLabels)}/>
 
                 <div className="text-[1.4rem] font-medium text-center">General</div>

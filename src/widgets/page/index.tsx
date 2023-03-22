@@ -3,6 +3,7 @@ import useAuthStore from "@/hooks/authStore"
 import Notifications from "@/widgets/notifications"
 import SidePanel from "@/widgets/sidePanel"
 import { useEffect } from "react"
+import Activities from "../activities"
 import PageWrapper from "./wrapper"
 
 interface Props {
@@ -20,6 +21,7 @@ export default function Page({children}: Props){
             <SidePanel/>
             <Notifications/>
             {children}
+            <Activities/>
         </PageWrapper>
     )
 }

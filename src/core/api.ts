@@ -44,7 +44,7 @@ export interface Channel {
     labels: Array<string>
 }
 
-type ChannelType = 'server_hosted' | 'ghosted'
+export type ChannelType = 'server_hosted' | 'ghosted'
 
 function isSuccessful(status: number): boolean {
     return status >= 200 && status < 300
