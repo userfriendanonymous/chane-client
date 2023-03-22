@@ -5,7 +5,7 @@ import Page from '@/widgets/page'
 export default function(){
     return (
         <Page>
-            <div></div>
+            <Workspace/>
         </Page>
     )
 }

@@ -1,11 +1,15 @@
 import IconButton from "@/ui/iconButton"
 import InputField from "./inputField"
 
-export default function SendBar(){
+interface Props {
+    onSend: (content: string) => void
+}
+
+export default function SendBar({onSend}: Props){
     return (
-        <div className="flex gap-block items-center p-block rounded-widget bg-[#D9D9D9] h-[3.5rem]">
+        <div className="block-window items-center bg-[#D9D9D9] h-[3.5rem]">
             <IconButton/>
-            <InputField/>
+            <InputField onSend={onSend}/>
             <IconButton/>
         </div>
     )

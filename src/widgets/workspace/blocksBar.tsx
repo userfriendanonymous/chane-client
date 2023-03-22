@@ -1,9 +1,31 @@
-import Block from "@/widgets/block"
 
-export default function BlocksBar(){
+import useBlocksStore from "@/hooks/blocksStore"
+import Block from "@/widgets/block"
+import { useCallback } from "react"
+
+interface Props {
+    blocks: Set<string>
+}
+
+export default function BlocksBar({blocks}: Props){
+    const blocksStore = useBlocksStore()
+    
+    const getBlockData = useCallback((id: string) => {
+        let data = blocksStore.get(id)
+        if (data){
+            return {
+                content: data.content
+            }
+        }
+    }, [blocksStore])
+
+    let blocksNodes: React.ReactNode[] = []
+    blocks.forEach(id => {
+        blocksNodes.push(<Block data={getBlockData(id)}/>)
+    })
     return (
-        <div className="overflow-y-scroll p-block rounded-widget flex-grow bg-[#EFEFEF]">
-            <Block/>
+        <div className="overflow-y-scroll block-window flex-grow bg-[#EFEFEF]">
+        {blocksNodes}
         </div>
     )
 }

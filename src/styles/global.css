@@ -9,3 +9,15 @@ body {
 button, textarea, input, input::placeholder {
     all: unset;
 }
+
+.widget-window {
+    @apply rounded-section p-widget flex gap-widget;
+}
+
+.block-window {
+    @apply flex gap-block p-block rounded-widget;
+}
+
+.sub-window {
+    @apply p-sub gap-sub flex rounded-block;
+}
