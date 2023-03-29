@@ -21,3 +21,7 @@ button, textarea, input, input::placeholder {
 .sub-window {
     @apply p-sub gap-sub flex rounded-block;
 }
+
+.bordered-window {
+    @apply border-[1px] border-[#e3e3e3];
+}

@@ -1,24 +1,19 @@
-import AXIOS, { AxiosResponse } from "axios"
-import {AuthState} from '@/hooks/authStore'
+import {
+    AuthLoginBody, AuthJoinBody, Block, Channel, CreateRoleBody, CreateChannelBody, GetChannelBlocksQuery,
+    DisconnectBlockFromChannelBody, ChangeChannelLabelsBody, ChangeChannelDescriptionBody, ChangeBlockBody,
+    ConnectBlockToChannelBody, Role, PinChannelBlockBody, User, AuthMe, ResultResponse, AuthJoinError,
+    AuthLoginError, GeneralError, RoleWrappedError, CreateRoleError, LiveMessage, CreateBlockBody
+} from '@/core/bindings'
+import AXIOS from "axios"
 
 let axios = AXIOS.create({
     withCredentials: true,
     validateStatus: () => true,
 })
 
-interface RolePermissions {
-    viewBlocks: string[]
-    connectBlocks: string[]
-    disconnectBlocks: string[]
-    pinBlock: string[]
-    changeDefaultRole: string[]
-    changeDescription: string[]
-    pinRoles: string[]
-    changeRoles: string[]
-    setLabels: boolean
-}
-
-export /*pub*/ type Result<S, E> = {type: 'success', data: S} | {type: 'error', data: E} // RUST!!
+export type Result<S, E> = {is: 'ok', data: S} | {is: 'err', data: E}
+export type ApiResult<T> = Result<T, Error>
+export type Error = 'network'
 
 function encodeQueryData(data: Map<string, string>) {
     const result: Array<string> = []
@@ -26,25 +21,23 @@ function encodeQueryData(data: Map<string, string>) {
     return result.join('&')
 }
 
-export interface Block {
-    id: string,
-    content: string,
-    owner: string
+function WebSocketPromise(...input: ConstructorParameters<typeof WebSocket>): Promise<WebSocket> {
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket(...input)
+        function cleanup(){
+            ws.onopen = () => {}
+            ws.onclose = () => {}
+        }
+        ws.onopen = (event) => {
+            resolve(ws)
+            cleanup()
+        }
+        ws.onclose = (event) => {
+            reject()
+            cleanup()
+        }
+    })
 }
-
-export interface User {
-    name: string
-}
-
-export interface Channel {
-    id: string,
-    type: ChannelType,
-    roles: Array<{name: string, role: string}>,
-    defaultRole: string,
-    labels: Array<string>
-}
-
-export type ChannelType = 'server_hosted' | 'ghosted'
 
 function isSuccessful(status: number): boolean {
     return status >= 200 && status < 300
@@ -57,263 +50,142 @@ class Api {
         this.endpoint = endpoint
     }
 
-    async getMyAuth(): Promise<Result<AuthState, string>> {
-        try {
-            const response = await axios.get(this.endpoint + 'auth/me')
-            if (isSuccessful(response.status)){
-                if (response.data.is == 'valid'){
-                    return {type: 'success', data: {is: 'valid', name: response.data.data.name}}
-                } else {
-                    return {type: 'success', data: {is: 'invalid'}}
-                }
-            } else {
-                return {type: 'error', data: response.data.message}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
+    private url(url: string){
+        return 'http://' + this.endpoint + url
     }
 
-    async login(name: string, password: string): Promise<Result<null, string>> { // me getting rusty
-        try {
-            const response = await axios.post(this.endpoint + 'auth/login', {
-            name, password
-            })
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: null}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
+    private async get<T>(...[url, ...input]: Parameters<typeof axios.get>): Promise<T> {
+        return (await axios.get(this.url(url), ...input)).data
     }
-
-    async join(name: string, email: string, password: string): Promise<Result<null, string>> { // let's not get serious about typescript. it's a little garbage architecture so it's ok!
-        try {
-            const response = await axios.post(this.endpoint + 'auth/join', {
-                name, email, password
-            })
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: null}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
+    private async post<T>(...[url, ...input]: Parameters<typeof axios.post>): Promise<T> {
+        return (await axios.post(this.url(url), ...input)).data
     }
-
-    async createBlock(content: string): Promise<Result<string, string>> {
-        try {
-            const response = await axios.post(this.endpoint + 'blocks/', {
-                content
-            })
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: response.data.id}
-            } else {
-                alert(JSON.stringify(response.data))
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
+    private async put<T>(...[url, ...input]: Parameters<typeof axios.put>): Promise<T> {
+        return (await axios.put(this.url(url), ...input)).data
     }
-
-    async getBlock(id: string): Promise<Result<Block, string>> {
-        try {
-            const response = await axios.get(this.endpoint + `blocks/${id}`)
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: response.data}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
+    private ws(...[url, ...input]: ConstructorParameters<typeof WebSocket>): WebSocket {
+        return new WebSocket('ws://' + this.endpoint + url, ...input)
     }
+    
+    async getMyAuth(): Promise<AuthMe>
+    {return await this.get('auth/me')}
 
-    async changeBlock(id: string, content: string): Promise<Result<null, string>> {
-        try {
-            const response = await axios.put(this.endpoint + `blocks/${id}`, {
-                content
-            })
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: null}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
+    async login(body: AuthLoginBody): Promise<ResultResponse<null, AuthLoginError>>
+    {return await this.post('auth/login', body)}
+
+    async join(body: AuthJoinBody): Promise<ResultResponse<null, AuthJoinError>>
+    {return await this.post('auth/join', body)}
+
+    async createBlock(body: CreateBlockBody): Promise<ResultResponse<string, GeneralError>>
+    {return await this.post('blocks/create', body)}
+
+    async getBlock(id: string): Promise<ResultResponse<Block, GeneralError>>
+    {return await this.get(`blocks/${id}`)}
+
+    async changeBlock(body: ChangeBlockBody): Promise<ResultResponse<null, GeneralError>>
+    {return await this.put('blocks/change', body)}
+
+    async getChannel(id: string): Promise<ResultResponse<null, Channel>>
+    {return await this.get(`channels/${id}`)}
+
+    async createChannel(body: CreateChannelBody): Promise<ResultResponse<string, GeneralError>>
+    {return await this.post('channels/create', body)}
+
+    async pinChannelBlock(body: PinChannelBlockBody): Promise<ResultResponse<null, RoleWrappedError>>
+    {return await this.put('channels/pin', body)}
+
+    async changeChannelDescription(body: ChangeChannelDescriptionBody): Promise<ResultResponse<null, RoleWrappedError>>
+    {return await this.put('channels/description', body)}
+
+    async changeChannelLabels(body: ChangeChannelLabelsBody): Promise<ResultResponse<null, RoleWrappedError>>
+    {return await this.put('channels/labels', body)}
+
+    async getChannelBlocks(id: string, query: GetChannelBlocksQuery): Promise<ResultResponse<Block[], RoleWrappedError>>
+    {return await this.get(`channels/${id}/blocks`, {params: query})}
+
+    async connectBlockToChannel(body: ConnectBlockToChannelBody): Promise<ResultResponse<null, RoleWrappedError>>
+    {return await this.put('channels/connect-block', body)}
+
+    async disconnectBlockFromChannel(body: DisconnectBlockFromChannelBody): Promise<ResultResponse<null, RoleWrappedError>> 
+    {return await this.put('channels/disconnect-block', body)}
+
+    async getUser(name: string): Promise<ResultResponse<User, GeneralError>> 
+    {return await this.get(`users/${name}`)}
+
+    async getRole(id: string): Promise<ResultResponse<Role, GeneralError>>
+    {return await this.get(`roles/${id}`)}
+
+    async createRole(body: CreateRoleBody): Promise<ResultResponse<string, CreateRoleError>> 
+    {return await this.post('roles/create', body)}
+
+    live(id: string, onMessage: (message: LiveMessage) => void, onOpen: () => void, onClose: () => void): () => void {
+        const ws = this.ws(`live/${id}`)
+        ws.onmessage = (event) => {
+            try {
+                let message: LiveMessage = JSON.parse(event.data)
+                onMessage(message)
+                
+            } catch(error){
+                console.error(error)
             }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
         }
-    }
-
-    async getChannel(id: string): Promise<Result<Channel, string>> {
-        try {
-            const response = await axios.get(this.endpoint + `channels/${id}`)
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: {
-                    defaultRole: response.data.default_role,
-                    id: response.data.id,
-                    labels: response.data.labels,
-                    roles: response.data.roles.map((role: {0: string, 1: string}) => ({name: role[0], role: role[1]})), // to fix this
-                    type: response.data.type as ChannelType
-                }}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
+        ws.onclose = () => {
+            onClose()
         }
-    }
-
-    async createChannel(type: ChannelType, description: string, roles: Array<string>, defaultRole: string, labels: Array<string>): Promise<Result<string, string>> {
-        try {
-            const response = await axios.post(this.endpoint + 'channels/', {
-                type,
-                description,
-                default_role: defaultRole,
-                labels
-            })
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: response.data.id}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
+        ws.onerror = () => {
+            onClose()
         }
-    }
-
-    async pinChannelBlock(blockId: string | null): Promise<Result<null, string>> {
-        try {
-            const response = await axios.put(this.endpoint + 'channels/pin', blockId == null ? {} : {
-                id: blockId
-            })
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: null}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
+        ws.onopen = () => {
+            onOpen()
         }
-    }
-
-    async changeChannelDescription(id: string, description: string): Promise<Result<null, string>> {
-        try {
-            const response = await axios.put(this.endpoint + `channels/${id}/description`, {
-                description
-            })
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: null}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
-    }
-
-    async changeChannelLabels(id: string, labels: Array<string>): Promise<Result<null, string>>{
-        try {
-            const response = await axios.put(this.endpoint + `channels/${id}/labels`, {
-                labels
-            })
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: null}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
-    }
-
-    async getChannelBlocks(id: string, limit?: number, offset?: number): Promise<Result<Array<Block>, string>> {
-        try {
-            let query: Map<string, string> = new Map()
-            if (limit) query.set('limit', String(limit))
-            if (offset) query.set('offset', String(offset))
-            const response = await axios.get(this.endpoint + `channels/${id}/blocks/?${encodeQueryData(query)}`)
-            
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: response.data}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
-    }
-
-    async connectBlockToChannel(id: string, blockId: string): Promise<Result<null, string>> {
-        try {
-            const response = await axios.put(this.endpoint + `channels/${id}/connect-block`, {id: blockId})
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: null}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
-    }
-
-    async disconnectBlockFromChannel(id: string, blockId: string): Promise<Result<null, string>> {
-        try {
-            const response = await axios.put(this.endpoint + `channels/${id}/disconnect-block`, {id: blockId})
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: null}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
-    }
-
-    async getUser(name: string): Promise<Result<User, string>> {
-        try {
-            const response = await axios.get(this.endpoint + `users/${name}`)
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: response.data}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
-        }
-    }
-
-    async createRole(name: string, extends_: string[], editors: string[], permissions: RolePermissions): Promise<Result<string, string>> {
-        try {
-            const response = await axios.post(this.endpoint + 'roles/', {
-                name,
-                extends: extends_,
-                editors,
-                permissions: {
-                    change_roles: permissions.changeRoles,
-                    view_blocks: permissions.viewBlocks,
-                    connect_blocks: permissions.connectBlocks,
-                    disconnect_blocks: permissions.disconnectBlocks,
-                    pin_block: permissions.pinBlock,
-                    change_default_role: permissions.changeDefaultRole,
-                    change_description: permissions.changeDescription,
-                    pin_roles: permissions.pinRoles,
-                    set_labels: permissions.setLabels
-                }
-            })
-            if (isSuccessful(response.status)){
-                return {type: 'success', data: response.data.id}
-            } else {
-                return {type: 'error', data: response.data.message ?? 'Unknown error'}
-            }
-        } catch(error){
-            return {type: 'error', data: 'Network error'}
+        return () => {
+            ws.close()
+            console.log('called from: ' + JSON.stringify(this))
         }
     }
 }
 
-const api = new Api('http://localhost:5000/api/')
+const api = new Api('localhost:5000/api/')
 export default api
+
+type LiveSocketState = {is: 'open', ws: WebSocket}
+| {is: 'loading', ws: WebSocket}
+| {is: 'closed'}
+
+class LiveSocket<M> {
+    address: string = ''
+    private state: LiveSocketState = {is: 'closed'}
+
+    constructor(address: string, onMessage: () => void) {
+        this.address = address
+        let ws = new WebSocket(this.address)
+        this.state = {
+            is: 'loading',
+            ws
+        }
+        ws.onopen = () => {
+            if (this.state.is == 'loading'){
+                this.state = {
+                    is: 'open',
+                    ws: this.state.ws
+                }
+            }
+        }
+        ws.onclose = () => {
+            if (this.state.is != 'closed'){
+                this.state = {is: 'closed'}
+            }
+        }
+        ws.onmessage = () => {
+            if (this.state.is == 'open'){
+                this.state
+            }
+        }
+    }
+
+    close(){
+        if (this.state.is == 'closed'){return}
+        this.state.ws.close()
+        this.state = {is: 'closed'}
+    }
+}

@@ -12,7 +12,7 @@ const InputPro = forwardRef<HTMLInputElement, Props>(({className, onSubmitted, i
     return (
         <div className='h-[2.5rem] flex items-center'>
             <input ref={ref} {...props} className={clsx('bg-[#f0f0f0] p-sub rounded-l-sub h-[100%] flex-grow box-border', className)}/>
-            <div onClick={onSubmitted} className='rounded-r-sub flex items-center h-[100%] w-[2.3rem] justify-center border-[1px] box-border border-[#dcdcdc] cursor-pointer'>
+            <div onClick={onSubmitted} className='rounded-r-sub flex items-center h-[100%] w-[2.3rem] justify-center bordered-window box-border cursor-pointer'>
                 {icon}
             </div>
         </div>

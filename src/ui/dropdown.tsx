@@ -22,7 +22,7 @@ export default function DropDown<CT extends unknown>({items, placeholder, select
 
     return (
         <div className="relative">
-            <div className="cursor-pointer sub-window h-[2.4rem] border-[1px] border-[#e3e3e3] box-border items-center justify-between"
+            <div className="cursor-pointer sub-window h-[2.4rem] bordered-window box-border items-center justify-between"
                 onClick={() => setIsOpen(open => !open)}
             >
                 {selected ? items.get(selected) : placeholder}

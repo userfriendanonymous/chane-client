@@ -7,7 +7,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, Props>(({className, ...props}, 
     return (
         <textarea
             ref={ref}
-            className={clsx("block-window border-dashed border-[1px] border-[#dbdbdb] outline outline-[0] outline-[#d8d7d73b] focus:outline-[5px] transition-all", className)}
+            className={clsx("block-window border-dashed bordered-window outline outline-[0] outline-[#d8d7d73b] focus:outline-[5px] transition-all", className)}
             {...props}
         />
     )

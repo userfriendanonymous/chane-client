@@ -19,7 +19,7 @@ export default function VisualArray({text, items, onAdded, onRemoved, placeholde
     }, [items])
 
     return (
-        <div className="block-window flex-col bg-[white] border-[1px] border-[#dedede]">
+        <div className="block-window flex-col bg-[white] bordered-window">
                 <div className="text-[1.1rem] font-medium">{text}</div>
                 <InputPro onSubmitted={() => onAdded(inputRef.current.value)} ref={inputRef} placeholder={placeholder}
                     icon={<BiPlus/>}

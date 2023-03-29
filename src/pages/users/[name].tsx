@@ -17,8 +17,8 @@ export default function({result}: Props){
         <Page>
         {
             result.type == 'error' ?
-            <div className="flex-col widget-window border-[1px] border-[#e3e3e3] h-[100%] flex-grow">
-                <div className="widget-window border-[1px] border-[#e3e3e3] w-full h-fit justify-between">
+            <div className="flex-col widget-window bordered-window h-[100%] flex-grow">
+                <div className="widget-window bordered-window w-full h-fit justify-between">
                     <div className="flex gap-[1.5rem] items-center">
                         <div className="w-[5.5rem] h-[5.5rem] overflow-clip rounded-block">
                             <img
@@ -39,14 +39,14 @@ export default function({result}: Props){
                     </div>
                 </div>
 
-                <div className="widget-window flex-col border-[1px] border-[#e3e3e3] w-full h-fit justify-between">
+                <div className="widget-window flex-col bordered-window w-full h-fit justify-between">
                     <div className='text-[1.4rem] font-medium text-center'>About me</div>
                     <div className="text-[1.1rem] block-window bg-[#f3f3f3]">
                         Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.
                     </div>
                 </div>
 
-                <div className="widget-window flex-col border-[1px] border-[#e3e3e3] w-full h-fit justify-between">
+                <div className="widget-window flex-col bordered-window w-full h-fit justify-between">
                     <div className='text-[1.4rem] font-medium text-center'>Recently connected channels</div>
                     <div className="w-[100%]">
                     <RowScroller className="">

@@ -13,11 +13,13 @@ export default function CreateBlockItem(){
 
     const onSubmit = useCallback(async () => {
         setIsLoading(true)
-        const result = await api.createBlock(buttonRef.current.value)
-        if (result.type == 'success'){
+        const result = await api.createBlock({
+            content: buttonRef.current.value
+        })
+        if (result.is == 'Ok'){
             pushNotification(result.data, 'success')
         } else {
-            pushNotification(result.data, 'error')
+            pushNotification(JSON.stringify(result.data), 'error')
         }
         setIsLoading(false)
     }, [])

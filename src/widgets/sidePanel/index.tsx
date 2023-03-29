@@ -33,7 +33,7 @@ export default function SidePanel(){
     return (
         <div className="w-[5rem] z-[100]">
             <motion.div
-                className='box-border h-[100%] rounded-section p-widget flex flex-col gap-widget bg-[white] border-[2px] border-[#e5e5e5]'
+                className='box-border h-[100%] rounded-section p-widget flex flex-col gap-widget bg-[white] bordered-window'
                 variants={VARIANTS}
                 transition={TRANSITION}
                 initial='closed'

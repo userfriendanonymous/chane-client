@@ -1,4 +1,4 @@
-import api, { ChannelType } from "@/core/api";
+import api from "@/core/api";
 import useNotificationsStore from "@/hooks/notificationsStore";
 import Button from "@/ui/button";
 import DropDown from "@/ui/dropdown";
@@ -24,6 +24,7 @@ export default function CreateChannelItem(){
     const [labels, setLabels] = useState<string[]>([])
     const descriptionRef = useRef<HTMLTextAreaElement>(null!)
     const defaultRoleRef = useRef<HTMLInputElement>(null!)
+    const titleRef = useRef<HTMLInputElement>(null!)
 
     const onSubmit = useCallback(async () => {
         if (!selected){
@@ -31,11 +32,17 @@ export default function CreateChannelItem(){
             return
         }
         setIsLoading(true)
-        const result = await api.createChannel(selected, descriptionRef.current.value, roles, defaultRoleRef.current.value, labels)
-        if (result.type == 'success'){
-            pushNotification(result.data, 'success')
+        const result = await api.createChannel({
+            default_role: defaultRoleRef.current.value,
+            description: descriptionRef.current.value,
+            title: titleRef.current.value,
+            labels: labels,
+            type: selected
+        })
+        if (result.is == 'Ok'){
+            pushNotification(JSON.stringify(result.data), 'success')
         } else {
-            pushNotification(result.data, 'error')
+            pushNotification(JSON.stringify(result.data), 'error')
         }
         setIsLoading(false)
     }, [selected, pushNotification, descriptionRef, roles, defaultRoleRef, labels])
@@ -43,7 +50,7 @@ export default function CreateChannelItem(){
     return (
         <ButtonWithWindow icon={<BiPlus className="scale-[1.4]"/>} text='Create channel'>
             <div className="gap-block flex flex-col w-[20rem]">
-                <Input className="bg-[#eeeeee]" placeholder="Title?"/>
+                <Input ref={titleRef} className="bg-[#eeeeee]" placeholder="Title?"/>
                 <TextArea ref={descriptionRef} placeholder='Description?'/>
                 <DropDown selected={selected} onSelect={setSelected} placeholder={'Channel type?'} items={channelType}/>
                 <Input ref={defaultRoleRef} placeholder="Default role id?"/>

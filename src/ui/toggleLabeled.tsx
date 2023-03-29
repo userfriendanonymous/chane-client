@@ -6,7 +6,7 @@ interface Props extends ToggleSwitchProps {
 
 export default function ToggleLabeled(props: Props){
     return (
-        <div className="block-window justify-between items-center bg-[white] border-[1px] border-[#dedede]">
+        <div className="block-window justify-between items-center bg-[white] bordered-window">
             <div className="text-[1.1rem] font-medium">
                 Can set labels?
             </div>

@@ -1,44 +1,37 @@
-import { useCallback, useEffect, useState } from "react"
+import api from '@/core/api'
+import { useCallback, useState } from "react"
+import {LiveMessage} from '@/core/bindings'
 
-type LiveMesssage = {
-    topic: 'block_connected',
-    data: {id: string}
-} | {
-    topic: 'block_disconnected',
-    data: {id: string}
-} | {
-    topic: 'labels_changed'
-} | {
-    topic: 'description_changed'
-} | {
-    topic: 'block_pinned',
-    data: {id?: string}
-} | {
-    topic: 'block_changed',
-    data: {id: string}
-}
+export type State = 'open' | 'closed' | 'loading'
 
-export default function useLiveChannel(onMessage: (message: LiveMesssage) => void){
-    const [liveChannelWs, setLiveChannelWs] = useState<WebSocket | undefined>()
-    useEffect(() => {
-        if (!liveChannelWs){
-            const ws = new WebSocket('ws://localhost:5000/api/live')
-            ws.onmessage = (event) => {
-                onMessage(event.data)
+export default function useLiveChannel(onMessage: (message: LiveMessage) => void): [State, (id: string) => void, () => void] {
+    const [state, setState] = useState<State>('closed')
+    const [close, setClose] = useState<() => void | undefined>()
+    const connect = useCallback((id: string) => {
+        setState('loading')
+        let closeFn = api.live(
+            id,
+            (message) => {
+                onMessage(message)
+            },
+            () => {
+                setState(state => {
+                    if (state != 'loading'){return state}
+                    return 'open'
+                })
+            },
+            () => {
+                setState('loading')
             }
-            setLiveChannelWs(ws)
+        )
+        setClose(() => closeFn) 
+    }, [setState, state])
 
-            let interval = setInterval(() => {
-                if (ws.OPEN == ws.readyState) {
-                    ws.send('')
-                } else {
-                    clearInterval(interval)
-                }
-            }, 1000)
+    const disconnect = useCallback(() => {
+        if (close){
+            close()
         }
+    }, [])
 
-        return () => {
-            liveChannelWs?.close()
-        }
-    }, [onMessage])
+    return [state, connect, disconnect]
 }
