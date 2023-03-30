@@ -3,6 +3,8 @@ import { State as LiveChannelState } from "@/hooks/liveChannel"
 import React, { useCallback } from "react"
 import BlocksBar from "../blocksBar"
 import InputField from "../inputField"
+import SendBar from "../sendBar"
+import ToolBar from "../toolBar"
 
 interface Props {
     blocks: Set<string>
@@ -12,17 +14,19 @@ interface Props {
 
 export default function Open({blocks, liveChannelState, onSend}: Props){
     return (
-        <div>
+        <div className="flex-col flex h-[100%] gap-widget">
+            <ToolBar/>
             <BlocksBar blocks={blocks}/>
-            {
+            {/* {
                 liveChannelState == 'open' ?
                 <div>Open</div>
                 :liveChannelState == 'closed' ?
                 <div>Closed</div>
                 :
                 <div>Loading</div>
-            }
-            <InputField onSend={onSend}/>
+            } */}
+            
+            <SendBar onSend={onSend}/>
         </div>
     )
 }

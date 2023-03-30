@@ -7,7 +7,7 @@ interface Props {
 
 export default function SendBar({onSend}: Props){
     return (
-        <div className="block-window items-center bg-[#D9D9D9] h-[3.5rem]">
+        <div className="block-window items-center bordered-window h-[3.5rem]">
             <IconButton/>
             <InputField onSend={onSend}/>
             <IconButton/>

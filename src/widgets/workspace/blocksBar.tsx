@@ -1,4 +1,5 @@
 import useBlocksStore from "@/hooks/blocksStore"
+import { ColumnScroller } from "@/ui/scroller"
 import Block from "@/widgets/block"
 import { useCallback } from "react"
 
@@ -8,23 +9,20 @@ interface Props {
 
 export default function BlocksBar({blocks}: Props){
     const blocksStore = useBlocksStore()
-    const getBlockData = useCallback((id: string) => {
-        let data = blocksStore.get(id)
-        if (data){
-            return {
-                content: data.content
-            }
-        }
-    }, [blocksStore])
 
+    console.log(blocksStore.blocks)
     let blocksNodes: React.ReactNode[] = []
     blocks.forEach(id => {
-        blocksNodes.push(<Block key={id} data={getBlockData(id)}/>)
+        blocksNodes.push(<Block key={id} state={blocksStore.get(id)}/>)
     })
 
     return (
-        <div className="overflow-y-scroll block-window flex-grow bg-[#EFEFEF] flex-col">
-            {blocksNodes}
+        <div className="flex-grow overflow-clip rounded-widget">
+            <ColumnScroller className="h-[100%] block-window bordered-window">
+                <div className="block-window flex-col">
+                    {blocksNodes}
+                </div>
+            </ColumnScroller>
         </div>
     )
 }

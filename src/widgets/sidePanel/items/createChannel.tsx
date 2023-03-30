@@ -1,4 +1,5 @@
 import api from "@/core/api";
+import {ChannelType} from '@/core/bindings'
 import useNotificationsStore from "@/hooks/notificationsStore";
 import Button from "@/ui/button";
 import DropDown from "@/ui/dropdown";

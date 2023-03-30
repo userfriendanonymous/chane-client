@@ -1,4 +1,5 @@
-import api, { Result, User } from "@/core/api"
+import api from "@/core/api"
+import {} from '@/core/bindings'
 import Button from "@/ui/button"
 import Page from "@/widgets/page"
 import { GetServerSideProps } from "next"
@@ -8,15 +9,26 @@ import { BiChat, BiFlag } from "react-icons/bi"
 import ChannelWidget from '@/widgets/channel'
 import { RowScroller } from "@/ui/scroller"
 
+type Result = {
+    is: 'ok',
+    data: ReturnType<typeof api.getUser> extends Promise<infer T> ? T : never
+} | {
+    is: 'invalidPath'
+}
+
 interface Props {
-    result: Result<User, string>
+    result: Result
 }
 
 export default function({result}: Props){
     return (
         <Page>
         {
-            result.type == 'error' ?
+            result.is == 'invalidPath' ?
+            <div>Invalid path</div>
+
+            :
+            result.data.is == 'Err' ?
             <div className="flex-col widget-window bordered-window h-[100%] flex-grow">
                 <div className="widget-window bordered-window w-full h-fit justify-between">
                     <div className="flex gap-[1.5rem] items-center">
@@ -49,12 +61,17 @@ export default function({result}: Props){
                 <div className="widget-window flex-col bordered-window w-full h-fit justify-between">
                     <div className='text-[1.4rem] font-medium text-center'>Recently connected channels</div>
                     <div className="w-[100%]">
-                    <RowScroller className="">
-                        <div className="gap-block flex">
+                    <RowScroller className="h-[17rem]">
+                        <div className="gap-block flex absolute">
                         <ChannelWidget data={undefined}/>
                         <ChannelWidget data={undefined}/>
                         <ChannelWidget data={undefined}/>
                         <ChannelWidget data={undefined}/>
+                        <ChannelWidget data={undefined}/>
+                        <ChannelWidget data={undefined}/>
+                        <ChannelWidget data={undefined}/>
+                        <ChannelWidget data={undefined}/>
+
                         </div>
                     </RowScroller>
                     </div>
@@ -72,13 +89,16 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
         const result = await api.getUser(context.query.name)
         return {
             props: {
-                result
+                result: {
+                    is: 'ok',
+                    data: result
+                }
             }
         }
     }
     return {
         props: {
-            result: {type: 'error', data: 'Invalid query'}
+            result: {is: 'invalidPath'}
         }
     }
 }

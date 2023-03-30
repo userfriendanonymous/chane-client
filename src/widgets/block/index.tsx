@@ -1,18 +1,19 @@
+import { BlockState } from '@/hooks/blocksStore'
 interface Props {
-    data: {content: string} | undefined
+    state: BlockState
 }
 
-export default function Block({data}: Props){
+export default function Block({state}: Props){
     return (
-        <div className="rounded-block p-block flex flex-col bg-[#D9D9D9]">
+        <div className="rounded-block p-block flex flex-col bg-[#ebebeb]">
         {
-            data ?
+            state.is == 'ok' ?
             <>
                 <div className="text-sSub">
-                    Mich / 12:51
+                    {state.data.owner} / {state.data.id}
                 </div>
                 <div className="text-sBlock">
-                    {data.content}
+                    {state.data.content}
                 </div>
             </>
 

@@ -8,7 +8,7 @@ interface Props {
 export default function Channel({data}: Props){
     return (
         !data ? // to fix this lol
-        <div className="w-[13rem] flex-col block-window border-[1px] border-[#e8e8e8]">
+        <div className="w-[15rem] h-[15rem] flex-col block-window border-[1px] border-[#e8e8e8]">
             <div className='h-[8rem] rounded-block overflow-clip'>
                 <img 
                     className="w-full h-[100%] object-contain"

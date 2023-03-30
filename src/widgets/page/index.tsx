@@ -5,6 +5,8 @@ import SidePanel from "@/widgets/sidePanel"
 import { useEffect } from "react"
 import Activities from "../activities"
 import PageWrapper from "./wrapper"
+import {enableMapSet} from 'immer'
+enableMapSet()
 
 interface Props {
     children: React.ReactNode

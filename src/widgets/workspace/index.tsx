@@ -3,7 +3,6 @@ import SideFeed from './sideFeed'
 import MainFeed from './mainField'
 import api from '@/core/api'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import UnselectedMainFeed from './unselectedMainFeed'
 import useBlocksStore from '@/hooks/blocksStore'
 import useNotificationsStore from '@/hooks/notificationsStore'
 import {Block, LiveMessage} from '@/core/bindings'
@@ -80,7 +79,7 @@ export default function Workspace(){
     }, [feedState])
 
     return (
-        <div className="widget-window flex-grow bg-[#F4F4F4]">
+        <div className="widget-window flex-grow bordered-window">
             <MainFeed feedState={feedState} liveChannelState={liveChannelState} onOpen={onOpen} onSend={onBlockSend}/>
             <SideFeed/>
         </div>
