@@ -25,8 +25,14 @@ export default function Open({blocks, liveChannelState, onSend}: Props){
                 :
                 <div>Loading</div>
             } */}
-            
-            <SendBar onSend={onSend}/>
+            {
+                liveChannelState == 'open' ?
+                <SendBar onSend={onSend}/>
+                : liveChannelState == 'loading' ?
+                <div>Connecting...</div>
+                :
+                <div>Closed</div>
+            }
         </div>
     )
 }

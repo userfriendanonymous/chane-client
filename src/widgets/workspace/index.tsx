@@ -19,6 +19,8 @@ export type FeedState = {is: 'loading', id: string}
 | {is: 'open', id: string, blocks: Set<string>}
 | {is: 'closed'}
 
+export type OnOpen = (id: string, live: boolean) => void
+
 export default function Workspace(){
     const [feedState, setFeedState] = useState<FeedState>({is: 'closed'})
     const callRef = useRef(false)
@@ -39,7 +41,7 @@ export default function Workspace(){
     }, [])
     const [liveChannelState, connectLiveChannel, disconnectLiveChannel] = useLiveChannel(onLiveMessage)
     
-    const onOpen = useCallback(async (id: string) => {
+    const onOpen: OnOpen = useCallback(async (id: string, live: boolean) => {
         setFeedState({is: 'loading', id})
         const response = await api.getChannelBlocks(id, {limit: null, offset: null})
 
@@ -54,7 +56,7 @@ export default function Workspace(){
                 let state = {...oldState}
                 if (state.is == 'loading' && id == state.id){
                     state = {is: 'open', blocks: blockIds, id}
-                    connectLiveChannel(id)
+                    if (live) connectLiveChannel(id)
                 } else {
                     alert(JSON.stringify(state))
                 }

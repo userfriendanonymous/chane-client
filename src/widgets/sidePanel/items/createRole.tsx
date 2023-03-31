@@ -1,15 +1,19 @@
-import api from "@/core/api";
-import Button from "@/ui/button";
-import {ColumnScroller} from "@/ui/scroller";
-import DropDown from "@/ui/dropdown";
-import Input from "@/ui/input";
-import ToggleLabeled from "@/ui/toggleLabeled";
-import ToggleSwitch from "@/ui/toggleSwitch";
-import VisualArray from "@/ui/visualArray";
-import { useCallback, useRef, useState } from "react";
-import { BiPlus, BiUser } from "react-icons/bi";
-import ButtonWithWindow from "../buttonWithWindow"
-import useNotificationsStore from "@/hooks/notificationsStore";
+import api from "@/core/api"
+import Button from "@/ui/button"
+import {ColumnScroller} from "@/ui/scroller"
+import Input from "@/ui/input"
+import ToggleLabeled from "@/ui/toggleLabeled"
+import VisualArray from "@/ui/visualArray"
+import { useCallback, useRef, useState } from "react"
+import { BiUser } from "react-icons/bi"
+import useNotificationsStore from "@/hooks/notificationsStore"
+import ItemButtonWithWindow from "../itemButtonWithWindow"
+
+export default () => (
+    <ItemButtonWithWindow icon={<BiUser className="scale-[1.35]"/>} window={<ItemPopupWindow/>} windowId="createRoleSidePanelItem">
+        Create role
+    </ItemButtonWithWindow>
+)
 
 interface Collectables {
     viewBlocks: string[]
@@ -25,7 +29,7 @@ interface Collectables {
     live: string[]
 }
 
-export default function CreateRoleItem(){
+function ItemPopupWindow(){
     const [isLoading, setIsLoading] = useState(false)
     const nameRef = useRef<HTMLInputElement>(null!)
     const pushNotification = useNotificationsStore(store => store.push)
@@ -92,38 +96,36 @@ export default function CreateRoleItem(){
         })
 
         if (result.is == 'Ok'){
-            pushNotification(result.data, 'success')
+            pushNotification({content: result.data, type: 'success'})
         } else {
-            pushNotification(JSON.stringify(result.data), 'error')
+            pushNotification({content: JSON.stringify(result.data), type: 'error'})
         }
         setIsLoading(false)
     }, [nameRef, collectables, canSetLabels, pushNotification])
 
     return (
-        <ButtonWithWindow icon={<BiUser className="scale-[1.35]"/>} text='Create role'>
-            <div className="w-[30rem] gap-block flex flex-col">
-                <Input ref={nameRef} className="bg-[#eeeeee] w-[100%]" placeholder="Name?"/>
-                <ColumnScroller className="h-[30rem]">
-                <div className="gap-block flex flex-col">
-                    <div className="text-[1.4rem] font-medium text-center">Permissions</div>
-                    <VisualArray placeholder='Add label...' text="View blocks?" items={collectables.viewBlocks} {...collectableControls('viewBlocks')}/>
-                    <VisualArray placeholder='Add label...' text="Go live?" items={collectables.live} {...collectableControls('live')}/>
-                    <VisualArray placeholder='Add label...' text="Connect blocks?" items={collectables.connectBlocks} {...collectableControls('connectBlocks')}/>
-                    <VisualArray placeholder='Add label...' text="Disconnect blocks?" items={collectables.disconnectBlocks} {...collectableControls('disconnectBlocks')}/>
-                    <VisualArray placeholder='Add label...' text="Pin block?" items={collectables.viewBlocks} {...collectableControls('pinBlock')}/>
-                    <VisualArray placeholder='Add label...' text="Change default role?" items={collectables.connectBlocks} {...collectableControls('changeDefaultRole')}/>
-                    <VisualArray placeholder='Add label...' text="Pin roles?" items={collectables.disconnectBlocks} {...collectableControls('pinRoles')}/>
-                    <ToggleLabeled isOn={canSetLabels} onSwitch={() => setCanSetLabels(!canSetLabels)}/>
+        <div className="w-[30rem] gap-block flex flex-col">
+            <Input ref={nameRef} className="bg-[#eeeeee] w-[100%]" placeholder="Name?"/>
+            <ColumnScroller className="h-[30rem]">
+            <div className="gap-block flex flex-col">
+                <div className="text-[1.4rem] font-medium text-center">Permissions</div>
+                <VisualArray placeholder='Add label...' text="View blocks?" items={collectables.viewBlocks} {...collectableControls('viewBlocks')}/>
+                <VisualArray placeholder='Add label...' text="Go live?" items={collectables.live} {...collectableControls('live')}/>
+                <VisualArray placeholder='Add label...' text="Connect blocks?" items={collectables.connectBlocks} {...collectableControls('connectBlocks')}/>
+                <VisualArray placeholder='Add label...' text="Disconnect blocks?" items={collectables.disconnectBlocks} {...collectableControls('disconnectBlocks')}/>
+                <VisualArray placeholder='Add label...' text="Pin block?" items={collectables.viewBlocks} {...collectableControls('pinBlock')}/>
+                <VisualArray placeholder='Add label...' text="Change default role?" items={collectables.connectBlocks} {...collectableControls('changeDefaultRole')}/>
+                <VisualArray placeholder='Add label...' text="Pin roles?" items={collectables.disconnectBlocks} {...collectableControls('pinRoles')}/>
+                <ToggleLabeled isOn={canSetLabels} onSwitch={() => setCanSetLabels(!canSetLabels)}/>
 
-                    <div className="text-[1.4rem] font-medium text-center">General</div>
-                    <VisualArray placeholder='Add username...' text="Who can edit this role?" items={collectables.editors} {...collectableControls('editors')}/>
-                    <VisualArray placeholder='Add role id...' text="Roles to extend?" items={collectables.extends} {...collectableControls('extends')}/>
-                    
-                    
-                </div>
-                </ColumnScroller>
-                <Button disabled={isLoading} onClick={onSubmit}>{isLoading ? 'Loading...' : 'Create'}</Button>
+                <div className="text-[1.4rem] font-medium text-center">General</div>
+                <VisualArray placeholder='Add username...' text="Who can edit this role?" items={collectables.editors} {...collectableControls('editors')}/>
+                <VisualArray placeholder='Add role id...' text="Roles to extend?" items={collectables.extends} {...collectableControls('extends')}/>
+                
+                
             </div>
-        </ButtonWithWindow>
+            </ColumnScroller>
+            <Button disabled={isLoading} onClick={onSubmit}>{isLoading ? 'Loading...' : 'Create'}</Button>
+        </div>
     )
 }

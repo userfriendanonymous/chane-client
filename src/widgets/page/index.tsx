@@ -1,6 +1,7 @@
 import api from "@/core/api"
 import useAuthStore from "@/hooks/authStore"
-import Notifications from "@/widgets/notifications"
+import Notifications from "@/ui/notifications"
+import PopupWindows from "@/ui/popupWindows"
 import SidePanel from "@/widgets/sidePanel"
 import { useEffect } from "react"
 import Activities from "../activities"
@@ -22,6 +23,7 @@ export default function Page({children}: Props){
         <PageWrapper>
             <SidePanel/>
             <Notifications/>
+            <PopupWindows/>
             {children}
             <Activities/>
         </PageWrapper>

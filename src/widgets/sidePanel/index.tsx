@@ -1,8 +1,4 @@
 import { motion } from "framer-motion"
-import {BiPlus} from 'react-icons/bi'
-import ButtonWithWindow from "./buttonWithWindow"
-import Input from "@/ui/input"
-import Button from "@/ui/button"
 import CreateBlockItem from "./items/createBlock"
 import CreateChannelItem from "./items/createChannel"
 import CreateRoleItem from "./items/createRole"
@@ -10,6 +6,8 @@ import LoginItem from "./items/login"
 import JoinItem from "./items/join"
 import LogoutItem from "./items/logout"
 import useAuthStore from "@/hooks/authStore"
+
+export type ItemButtonState = {is: 'open', id: number} | {is: 'closed'}
 
 const VARIANTS = {
     open: {

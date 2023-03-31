@@ -5,7 +5,7 @@ import api from "@/core/api"
 import {LiveMessage} from '@/core/bindings'
 import useBlocksStore from "@/hooks/blocksStore"
 import useNotificationsStore from "@/hooks/notificationsStore"
-import {FeedState} from '../index'
+import {FeedState, OnOpen} from '../index'
 import {State as LiveChannelState} from '@/hooks/liveChannel'
 import Open from "./open"
 import Closed from './closed'
@@ -14,7 +14,7 @@ import Loading from './loading'
 interface Props {
     feedState: FeedState
     liveChannelState: LiveChannelState
-    onOpen: (id: string) => void
+    onOpen: OnOpen
     onSend: (content: string) => void
 }
 
