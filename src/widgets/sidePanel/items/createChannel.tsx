@@ -16,7 +16,7 @@ channelType.set('server_hosted', 'server hosted')
 channelType.set('ghosted', 'ghosted')
 
 export default () => (
-    <ItemButtonWithWindow icon={<BiPlus className="scale-[1.4]"/>} window={<ItemPopupWindow/>} windowId="createChannelSidePanelItem">
+    <ItemButtonWithWindow icon={<BiPlus className="scale-[1.4]"/>} window={<ItemPopupWindow/>}>
         Create channel
     </ItemButtonWithWindow>
 )

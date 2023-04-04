@@ -1,6 +1,7 @@
-import api, { Channel } from '@/core/api'
+import api from '@/core/api'
 import {create} from 'zustand'
 import { immer } from 'zustand/middleware/immer'
+import {Channel} from '@/core/bindings'
 
 interface State {
     channels: Map<string, Channel>
@@ -18,7 +19,7 @@ const useChannelsStore = create<State>()(immer((set, get) => ({
             return channel
         } else {
             api.getChannel(id).then(result => {
-                if (result.type == 'success'){
+                if (result.is == 'Ok'){
                     set((state: State) => {
                         state.channels.set(id, result.data)
                     })

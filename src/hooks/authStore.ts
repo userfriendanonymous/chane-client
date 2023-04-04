@@ -3,30 +3,24 @@ import { WritableDraft } from 'immer/dist/internal'
 import {create} from 'zustand'
 import {immer} from 'zustand/middleware/immer'
 import Cookie from 'js-cookie'
-
-export type AuthState = {
-    is: 'valid',
-    name: string
-} | {
-    is: 'invalid'
-}
+import {AuthMe} from '@/core/bindings'
 
 interface AuthStore {
-    state: AuthState
+    state: AuthMe
     invalidate: () => void
     validate: (name: string) => void
     isChecked: boolean
     check: () => void
-    setState: (state: WritableDraft<AuthStore>, newState: AuthState, noReset?: boolean) => void
+    setState: (state: WritableDraft<AuthStore>, newState: AuthMe, noReset?: boolean) => void
 }
 
 const useAuthStore = create<AuthStore>()(immer((set, get) => ({
-    state: {is: 'invalid'},
+    state: {is: 'Invalid'},
     isChecked: false,
 
     invalidate: () => {
         set(state => {
-            state.setState(state, {is: 'invalid'})
+            state.setState(state, {is: 'Invalid'})
         })
     },
 
@@ -39,15 +33,15 @@ const useAuthStore = create<AuthStore>()(immer((set, get) => ({
             } catch(error){}
         }
 
-        if (newState.is == 'invalid'){
+        if (newState.is == 'Invalid'){
             Cookie.remove('key-token', { path: '/api/auth', expires: 0 })
         }
     },
 
     validate: (name) => set(state => {
         state.setState(state, {
-            is: 'valid',
-            name
+            is: 'Valid',
+            data: {name}
         })
     }),
 
@@ -58,19 +52,16 @@ const useAuthStore = create<AuthStore>()(immer((set, get) => ({
                 state.isChecked = true
             })
 
-            let auth: AuthState = {is: 'invalid'}
+            let auth: AuthMe = {is: 'Invalid'}
             let isFound = false
             try {
-                let result = JSON.parse(localStorage.getItem('auth-info') ?? '')
-                if (result.is == 'valid'){
-                    auth = {is: 'valid', name: result.name ?? '???'}
-                    isFound = true
-                } else if (result.is == 'invalid'){
-                    isFound = true
-                }
+                auth = JSON.parse(localStorage.getItem('auth-info') ?? '')
+                isFound = true
             } catch(error){
-
+                console.error(error)
             }
+
+            console.log(auth)
 
             if (isFound){
                 set(state => {
@@ -80,12 +71,9 @@ const useAuthStore = create<AuthStore>()(immer((set, get) => ({
             }
 
             api.getMyAuth().then(result => {
-                if (result.type == 'success'){
-                    set(state => {
-                        state.setState(state, result.data)
-                    })
-                } else {
-                } 
+                set(state => {
+                    state.setState(state, result)
+                })
             })
         }
     }

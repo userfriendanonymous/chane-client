@@ -2,67 +2,50 @@ import { useEffect } from 'react';
 import {create} from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import {ReactNode} from 'react'
-import useGlobalState from './globalState'
-import GlobalState from '@/core/globalState'
-
-type Windows = Map<string, IPopupWindow>
+type Windows = Map<number, ReactNode>
 
 interface State {
     windows: Windows
+    windowsCount: number
     id: number
+    use: () => number
+    remove: (id: number) => void
+    set: (id: number, element: ReactNode) => void
 }
-
-const globalState = new GlobalState<State>({
-    windows: new Map(),
-    id: 0
-})
 
 export interface IPopupWindow {
-    element: ReactNode
+    element: ReactNode | undefined
 }
 
-export default function usePopupWindowsStore(): [Windows, (key: string, item: IPopupWindow) => void] {
-    let [state, changeState, setState] = useGlobalState(globalState)
+const usePopupWindowsStore = create<State>()(immer((set, get) => ({
+    windows: new Map(),
+    id: 0,
+    windowsCount: 0,
 
-    // useEffect(() => {
-    //     changeState(state => {
-    //         state.windows.clear()
-    //         state.id = 0
-    //     })
-    // }, [state.id])
-    
-    const set = (key: string, item: IPopupWindow) => {
-        changeState(state => {
-            state.windows.set(key, item)
+    use: () => {
+        let id = get().id
+        set(state => {
+            state.windowsCount++
             state.id++
         })
+        return id
+    },
+
+    set: (id: number, element: ReactNode) => {
+        set(state => {
+            state.windows.set(id, element)
+        })
+    },
+
+    remove: (id: number) => {
+        set(state => {
+            state.windows.delete(id)
+            state.windowsCount--
+            if (state.windowsCount == 0) {
+                state.id = 0
+            }
+        })
     }
+})))
 
-    return [state.windows, set]
-}
-
-// const usePopupWindowsStore = create<State>()(immer((set, get) => ({
-//     windows: new Map(),
-//     id: 0,
-
-//     push: (item: IPopupWindow) => {
-//         let id = get().id
-//         set(state => {
-//             state.windows.set(id, item)
-//             console.log(id)
-//             state.id++
-//         })
-//         return id
-//     },
-
-//     remove: (id: number) => {
-//         set(state => {
-//             console.log(state.windows.delete(id), id)
-//             if (state.windows.size == 0) {
-//                 state.id = 0
-//             }
-//         })
-//     }
-// })))
-
-// export default usePopupWindowsStore
+export default usePopupWindowsStore

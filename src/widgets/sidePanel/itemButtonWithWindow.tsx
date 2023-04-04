@@ -1,40 +1,37 @@
 import ItemButton from "./itemButton"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import usePopupWindowsStore from "@/hooks/popupWindowsStore"
 import { ItemButtonState } from "."
 import PopupWindow from '@/ui/popupWindow'
+import usePopupWindowsManager from "@/hooks/popupWindowsManager"
 
 interface Props {
     window: React.ReactNode
     children: React.ReactNode
     icon: React.ReactNode
     onClose?: (close: () => void) => {}
-    windowId: string
 
 }
 
-export default function ItemButtonWithWindow({windowId, window, children, icon, onClose}: Props){
-    const [state, setState] = useState<'open' | 'closed'>('open')
-    const [, setPopupWindow] = usePopupWindowsStore()
+export default function ItemButtonWithWindow({window, children, icon, onClose}: Props){
+    const windowsManager = usePopupWindowsManager()
 
-    const defaultOnClose = () => {
-        setState('closed')
-    }
+    const onCloseWindow = useCallback((id: number) => {
+        windowsManager.remove(id)
+    }, [windowsManager.remove])
+    
+    const windowFn = useCallback((id: number) => {
+        return (
+            <PopupWindow onClose={() => onClose ? onClose(() => onCloseWindow(id)) : onCloseWindow(id)}>
+                {window}
+            </PopupWindow>
+        )
+    }, [onCloseWindow])
 
-    if (state == 'open'){
-        setPopupWindow(windowId, {
-            element: (
-                <PopupWindow onClose={() => {
-                    onClose ? onClose(defaultOnClose) : defaultOnClose()
-                }}>
-                    {window}
-                </PopupWindow>
-            )
-        })
-    }
+    windowsManager.instance(windowFn)
 
     return (
-        <ItemButton icon={icon} onClick={() => setState('open')}>
+        <ItemButton icon={icon} onClick={() => {windowsManager.spawn()}}>
             {children}
         </ItemButton>
     )

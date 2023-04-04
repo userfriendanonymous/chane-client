@@ -8,7 +8,7 @@ import { BiCool } from "react-icons/bi"
 import ItemButtonWithWindow from "../itemButtonWithWindow"
 
 export default () => (
-    <ItemButtonWithWindow icon={<BiCool className="scale-[1.5]"/>} window={<ItemPopupWindow/>} windowId="joinSidePanelItem">
+    <ItemButtonWithWindow icon={<BiCool className="scale-[1.5]"/>} window={<ItemPopupWindow/>}>
         Join us
     </ItemButtonWithWindow>
 )

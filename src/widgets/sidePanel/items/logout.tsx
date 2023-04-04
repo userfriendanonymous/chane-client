@@ -5,7 +5,7 @@ import { BiLogIn, BiLogOut } from "react-icons/bi"
 import ItemButtonWithWindow from "../itemButtonWithWindow"
 
 export default () => (
-    <ItemButtonWithWindow icon={<BiLogOut className="scale-[1.3]"/>} window={<ItemPopupWindow/>} windowId="logoutSidePanelItem">
+    <ItemButtonWithWindow icon={<BiLogOut className="scale-[1.3]"/>} window={<ItemPopupWindow/>}>
         Log out
     </ItemButtonWithWindow>
 )

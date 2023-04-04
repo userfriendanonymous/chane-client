@@ -8,9 +8,16 @@ interface Props {
 }
 
 export default function PopupWindow({children, onClose}: Props){
+    const dragControls = useDragControls()
 
     return (
         <motion.div
+            drag
+            dragControls={dragControls}
+            dragListener={false}
+            dragTransition={{
+                power: 0
+            }}
             variants={{
                 shown: {
                     scale: 1,
@@ -35,7 +42,10 @@ export default function PopupWindow({children, onClose}: Props){
             className='mt-[1rem] absolute block-window flex-col bg-white shadow-[0_0_30px_#cfcfcf] z-[100]'
         >
             <div className="flex gap-sub">
-                <div className='bg-[#f2f2f2] h-[2rem] rounded-full flex-grow'/>
+                <motion.div
+                    onPointerDown={e => dragControls.start(e)}
+                    dragControls={dragControls}
+                    className='bg-[#f2f2f2] h-[2rem] rounded-full flex-grow cursor-move'/>
                 <div className='bg-[#f2f2f2] w-[2rem] h-[2rem] rounded-full flex items-center justify-center cursor-pointer' onClick={onClose}>
                     <BiX className='scale-[1.2]'/>
                 </div>

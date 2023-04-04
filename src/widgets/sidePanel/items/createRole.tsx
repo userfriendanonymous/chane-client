@@ -10,7 +10,7 @@ import useNotificationsStore from "@/hooks/notificationsStore"
 import ItemButtonWithWindow from "../itemButtonWithWindow"
 
 export default () => (
-    <ItemButtonWithWindow icon={<BiUser className="scale-[1.35]"/>} window={<ItemPopupWindow/>} windowId="createRoleSidePanelItem">
+    <ItemButtonWithWindow icon={<BiUser className="scale-[1.35]"/>} window={<ItemPopupWindow/>}>
         Create role
     </ItemButtonWithWindow>
 )

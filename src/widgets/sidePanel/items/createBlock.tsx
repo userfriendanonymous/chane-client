@@ -7,7 +7,7 @@ import { BiCube } from "react-icons/bi"
 import ItemButtonWithWindow from "../itemButtonWithWindow"
 
 export default () => (
-    <ItemButtonWithWindow icon={<BiCube className="scale-[1.35]"/>} window={<ItemPopupWindow/>} windowId="createBlockSidePanelItem">
+    <ItemButtonWithWindow icon={<BiCube className="scale-[1.35]"/>} window={<ItemPopupWindow/>}>
         Create block
     </ItemButtonWithWindow>
 )

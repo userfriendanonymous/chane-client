@@ -8,7 +8,7 @@ import { BiLogIn } from "react-icons/bi"
 import ItemButtonWithWindow from "../itemButtonWithWindow"
 
 export default () => (
-    <ItemButtonWithWindow icon={<BiLogIn className="scale-[1.3]"/>} window={<ItemPopupWindow/>} windowId="loginSidePanelItem">
+    <ItemButtonWithWindow icon={<BiLogIn className="scale-[1.3]"/>} window={<ItemPopupWindow/>}>
         Login
     </ItemButtonWithWindow>
 )

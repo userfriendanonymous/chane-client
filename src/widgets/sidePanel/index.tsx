@@ -7,16 +7,16 @@ import JoinItem from "./items/join"
 import LogoutItem from "./items/logout"
 import useAuthStore from "@/hooks/authStore"
 
-export type ItemButtonState = {is: 'open', id: number} | {is: 'closed'}
+export type ItemButtonState = {is: 'open', id: number} | {is: 'closed', id: number}
 
 const VARIANTS = {
     open: {
         width: '15rem',
-        boxShadow: '0px 0px 200px #aeaeae'
+        // boxShadow: '0px 0px 200px #aeaeae'
     },
     closed: {
         width: '5rem',
-        boxShadow: '0px 0px 0px #aeaeae'
+        // boxShadow: '0px 0px 0px #aeaeae'
     }
 }
 
@@ -39,7 +39,7 @@ export default function SidePanel(){
                 whileHover='open'
             >
                 {
-                    authState.is == 'valid' ?
+                    authState.is == 'Valid' ?
                     <>
                     <CreateChannelItem/>
                     <CreateBlockItem/>

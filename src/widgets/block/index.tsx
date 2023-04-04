@@ -1,4 +1,4 @@
-import { BlockState } from '@/hooks/blocksStore'
+import { BlockState } from '@/hooks/apiStore'
 interface Props {
     state: BlockState
 }

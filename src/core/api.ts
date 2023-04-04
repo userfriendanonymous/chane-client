@@ -85,7 +85,7 @@ class Api {
     async changeBlock(body: ChangeBlockBody): Promise<ResultResponse<null, GeneralError>>
     {return await this.put('blocks/change', body)}
 
-    async getChannel(id: string): Promise<ResultResponse<null, Channel>>
+    async getChannel(id: string): Promise<ResultResponse<Channel, GeneralError>>
     {return await this.get(`channels/${id}`)}
 
     async createChannel(body: CreateChannelBody): Promise<ResultResponse<string, GeneralError>>
@@ -118,74 +118,43 @@ class Api {
     async createRole(body: CreateRoleBody): Promise<ResultResponse<string, CreateRoleError>> 
     {return await this.post('roles/create', body)}
 
-    live(id: string, onMessage: (message: LiveMessage) => void, onOpen: () => void, onClose: () => void): () => void {
+    async getLiveChannel(id: string, onClose: () => void): Promise<LiveChannel> {
         const ws = this.ws(`live/${id}`)
-        ws.onmessage = (event) => {
-            try {
-                let message: LiveMessage = JSON.parse(event.data)
-                onMessage(message)
-                
-            } catch(error){
-                console.error(error)
-            }
-        }
         ws.onclose = () => {
             onClose()
         }
         ws.onerror = () => {
             onClose()
         }
-        ws.onopen = () => {
-            onOpen()
-        }
-        return () => {
-            ws.close()
-            console.log('called from: ' + JSON.stringify(this))
-        }
+        return new Promise((resolve) => {
+            ws.onopen = () => {
+                resolve(new Live<LiveMessage>(call => {
+                    ws.onmessage = (e) => {
+                        call(e.data)
+                    }
+                }))
+            }
+        })
     }
 }
 
 const api = new Api('localhost:5000/api/')
 export default api
 
-type LiveSocketState = {is: 'open', ws: WebSocket}
-| {is: 'loading', ws: WebSocket}
-| {is: 'closed'}
-
-class LiveSocket<M> {
-    address: string = ''
-    private state: LiveSocketState = {is: 'closed'}
-
-    constructor(address: string, onMessage: () => void) {
-        this.address = address
-        let ws = new WebSocket(this.address)
-        this.state = {
-            is: 'loading',
-            ws
-        }
-        ws.onopen = () => {
-            if (this.state.is == 'loading'){
-                this.state = {
-                    is: 'open',
-                    ws: this.state.ws
-                }
-            }
-        }
-        ws.onclose = () => {
-            if (this.state.is != 'closed'){
-                this.state = {is: 'closed'}
-            }
-        }
-        ws.onmessage = () => {
-            if (this.state.is == 'open'){
-                this.state
-            }
-        }
+class Live<M> {
+    private listeners: Set<(messsage: M) => void> = new Set()
+    constructor(gen: (call: (message: M) => void) => void){
+        gen((message) => {
+            this.listeners.forEach(fn => {
+                fn(message)
+            })
+            this.listeners.clear()
+        })
     }
 
-    close(){
-        if (this.state.is == 'closed'){return}
-        this.state.ws.close()
-        this.state = {is: 'closed'}
+    listen(fn: (message: M) => void){
+        this.listeners.add(fn)
     }
 }
+
+type LiveChannel = Live<LiveMessage>

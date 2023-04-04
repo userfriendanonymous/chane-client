@@ -1,9 +1,8 @@
 import useLiveChannel from '@/hooks/liveChannel'
 import SideFeed from './sideFeed'
 import MainFeed from './mainField'
-import api from '@/core/api'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import useBlocksStore from '@/hooks/blocksStore'
+import useApiStore from '@/hooks/apiStore'
 import useNotificationsStore from '@/hooks/notificationsStore'
 import {Block, LiveMessage} from '@/core/bindings'
 import {useImmer} from 'use-immer'
@@ -24,18 +23,19 @@ export type OnOpen = (id: string, live: boolean) => void
 export default function Workspace(){
     const [feedState, setFeedState] = useState<FeedState>({is: 'closed'})
     const callRef = useRef(false)
+    const api = useApiStore()
+    const pushNotification = useNotificationsStore(store => store.push)
 
     const onLiveMessage = useCallback((message: LiveMessage) => {
         setFeedState(oldState => {
             let state = {...oldState}
-            if (state.is != 'open'){return state}
-            if (message.is == 'BlockConnected'){
+            if (state.is != 'open') return state
+            if (message.is == 'BlockConnected')
                 state.blocks.add(message.data.id)
 
-            } else if (message.is == 'BlockDisconnected'){
+            else if (message.is == 'BlockDisconnected')
                 state.blocks.delete(message.data.id)
-                
-            }
+    
             return state
         })
     }, [])
@@ -43,12 +43,12 @@ export default function Workspace(){
     
     const onOpen: OnOpen = useCallback(async (id: string, live: boolean) => {
         setFeedState({is: 'loading', id})
-        const response = await api.getChannelBlocks(id, {limit: null, offset: null})
 
-        if (response.is == 'Ok'){
+        const result = await api.getChannelBlocks(id, {limit: null, offset: null})
+
+        if (result.is == 'Ok'){
             let blockIds = new Set<string>()
-            response.data.forEach(block => {
-                enterBlocksStore(block.id, block)
+            result.data.forEach(block => {
                 blockIds.add(block.id)
             })
 
@@ -57,21 +57,18 @@ export default function Workspace(){
                 if (state.is == 'loading' && id == state.id){
                     state = {is: 'open', blocks: blockIds, id}
                     if (live) connectLiveChannel(id)
-                } else {
+                } else
                     alert(JSON.stringify(state))
-                }
+
                 return state
             })
         } else {
-            alert(JSON.stringify(response))
+            alert(JSON.stringify(result))
         }
     }, [setFeedState, feedState, connectLiveChannel, callRef, setFeedState])
 
-    const enterBlocksStore = useBlocksStore(state => state.enter)
-    const pushNotification = useNotificationsStore(store => store.push)
-
     const onBlockSend = useCallback(async (content: string) => {
-        if (feedState.is != 'open'){return}
+        if (feedState.is != 'open') return
         const response = await api.createBlock({content})
         console.log(response)
         if (response.is == 'Ok'){
